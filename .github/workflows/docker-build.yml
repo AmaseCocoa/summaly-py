@@ -3,7 +3,7 @@ name: Publish Docker image
 on:
   push:
     branches:
-      - main  # mainブランチへのプッシュ時にトリガー
+      - main
 
 jobs:
   build-and-push:
@@ -23,9 +23,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Convert repository name to lowercase
+        id: repo_name
+        run: echo "REPO_NAME=${{ github.repository }}" | tr '[:upper:]' '[:lower:]' | tee -a $GITHUB_ENV
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository }}:latest
+          tags: ghcr.io/${{ env.REPO_NAME }}:latest
+
+      - name: Post login status
+        run: echo "Logged in to ghcr.io as ${{ github.actor }}"

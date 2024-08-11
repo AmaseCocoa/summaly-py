@@ -20,7 +20,7 @@ jobs:
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
+          username: ${{ github.repository_owner  }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker image
@@ -28,7 +28,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/amasecocoa/summaly-py:latest
+          tags: ghcr.io/${{ github.repository_owner  }}/summaly-py:latest
 
       - name: Post login status
-        run: echo "Logged in to ghcr.io as ${{ github.actor }}"
+        run: echo "Logged in to ghcr.io as ${{ github.repository_owner  }}"

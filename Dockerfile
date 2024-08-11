@@ -18,7 +18,7 @@ RUN git clone https://github.com/microsoft/mimalloc.git && \
 
 ENV LD_PRELOAD=/usr/local/lib/libmimalloc.so
 
-WORKDIR /app
+WORKDIR /
 
 COPY requirements.txt .
 

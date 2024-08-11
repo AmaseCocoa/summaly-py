@@ -28,9 +28,8 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository_owner  }}/summaly-py:latest
+          tags: ghcr.io/amasecocoa/summaly-py:latest
 
       - name: Post login status
         run: echo "Logged in to ghcr.io as ${{ github.repository_owner  }}"
 
-        

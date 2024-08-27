@@ -236,6 +236,12 @@ async def extract_metadata(url, opts=None):
         oembed = await get_oembed_player(
             session, url, timeout, content_length_limit, content_length_required
         )
+        if oembed is None:
+            oembed = {
+                "url": None,
+                "width": None,
+                "height": None
+            }
 
         return {
             "title": title,

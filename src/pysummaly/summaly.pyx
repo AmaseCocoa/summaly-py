@@ -6,23 +6,20 @@ import aiohttp
 import orjson
 from lxml import html as lxml_html
 
-
 async def fetch(session, url, timeout, content_length_limit, content_length_required):
     async with session.get(url, timeout=timeout) as response:
         if content_length_required and response.content_length is None:
             raise aiohttp.ClientPayloadError("Content length required but not provided")
         if (
             response.content_length is not None
-            and response.content_length > content_length_limit
+            and response.content_length > content_length_limit if content_length_limit is not None else False
         ):
             raise aiohttp.ClientPayloadError("Content length exceeds limit")
         return await response.text()
 
-
 async def fetch_head(session, url, timeout):
     async with session.head(url, timeout=timeout) as response:
         return response.status == 200
-
 
 def escape_html_in_json(json_string):
     try:
@@ -36,7 +33,6 @@ def escape_html_in_json(json_string):
 
     return orjson.dumps(json_dict)
 
-
 async def get_oembed_player(
     session, page_url, timeout, content_length_limit, content_length_required
 ):
@@ -44,9 +40,7 @@ async def get_oembed_player(
         session, page_url, timeout, content_length_limit, content_length_required
     )
     oembed_link = tree.xpath('//link[@type="application/json+oembed"]/@href')
-    print(oembed_link)
     if not oembed_link or not isinstance(oembed_link, list) or len(oembed_link) == 0:
-        print("No oEmbed link found")
         return None
 
     oembed_url = urljoin(page_url, oembed_link[0])

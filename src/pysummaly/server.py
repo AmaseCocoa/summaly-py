@@ -32,6 +32,7 @@ class GeneralScrapingOptions(BaseModel):
 
 
 @app.get("/")
+@app.get("/url")
 @cache(expire=600)
 async def extract_metadata_endpoint(
     url: str,
@@ -58,7 +59,7 @@ async def extract_metadata_endpoint(
     )
 
     try:
-        metadata = await extract_metadata(url, opts.dict() if opts else {})
+        metadata = await extract_metadata(url, opts.model_dump() if opts else {})
         if metadata is None:
             raise HTTPException(status_code=404, detail="Metadata not found")
         return ORJSONResponse(

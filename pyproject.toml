@@ -25,7 +25,6 @@ license = {text = "MIT"}
 [project.optional-dependencies]
 server = [
     "fastapi-cache2>=0.2.2",
-    "uvicorn[standard]>=0.30.5",
     "fastapi>=0.112.0",
     "granian>=1.5.2",
 ]

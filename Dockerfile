@@ -1,29 +1,17 @@
-FROM python:3.12.5-slim-bullseye
+FROM python:3.12.5-slim-bookworm
 
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    cmake \
-    git \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y libmimalloc2.0 libmimalloc-dev
 
-RUN git clone https://github.com/microsoft/mimalloc.git && \
-    cd mimalloc && \
-    mkdir -p out/release && \
-    cd out/release && \
-    cmake ../.. && \
-    make && \
-    make install && \
-    cd ../../.. && \
-    rm -rf mimalloc
+RUN pip install pdm
 
-ENV LD_PRELOAD=/usr/local/lib/libmimalloc.so
+ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libmimalloc.so
 
 WORKDIR /
 
-COPY requirements.txt .
+COPY pyproject.toml .
 
-RUN pip install --no-cache-dir .
+RUN pdm install --frozen-lockfile
 
 COPY . .
 
-CMD ["granian", "--interface", "asgi", "docker.backend:app"]
+CMD ["granian", "--interface", "asgi", "pysummaly.server:app"]

@@ -14,4 +14,4 @@ RUN pdm install --frozen-lockfile
 
 
 
-CMD ["granian", "--interface", "asgi", "pysummaly.server:app"]
+CMD ["python", "-m", "granian", "--interface", "asgi", "pysummaly.server:app"]

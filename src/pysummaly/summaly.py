@@ -1,11 +1,21 @@
 import re
 from urllib.parse import urljoin, urlparse
+import ipaddress
 
 import aiohttp
 import orjson
 from lxml import html as lxml_html
 
 async def fetch(session, url, timeout, content_length_limit, content_length_required):
+    try:
+        resolver = aiohttp.DefaultResolver()
+        infos = await resolver.resolve(url.split('://')[-1].split('/')[0], 0)
+        for info in infos:
+            ip = ipaddress.ip_address(info['host'])
+            if ip.is_private or ip.is_loopback:
+                raise Exception("Access to local IPs is denied.")
+    except Exception as e:
+        raise Exception(f"DNS resolution failed: {e}")
     async with session.get(url, timeout=timeout) as response:
         if content_length_required and response.content_length is None:
             raise aiohttp.ClientPayloadError("Content length required but not provided")

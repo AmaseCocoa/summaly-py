@@ -3,8 +3,11 @@ from urllib.parse import urljoin, urlparse
 import ipaddress
 
 import aiohttp
+
 import orjson
 from lxml import html as lxml_html
+
+private_regex = r'^(10\.\d{1,3}\.\d{1,3}\.\d{1,3}$|172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}$|192\.168\.\d{1,3}\.\d{1,3})'
 
 async def fetch(session, url, timeout, content_length_limit, content_length_required):
     try:
@@ -67,10 +70,11 @@ async def get_oembed_player(session, page_url, timeout, content_length_limit, co
 
     iframe = iframe[0]
     url = iframe.get("src")
+    url_parsed = urlparse(url)
 
-    match = re.search(r'"(https?://[^\"]+)"', url)
+    match = re.search(r'"(https?://[^\"]+)"', url) 
 
-    if not match or urlparse(url).scheme != "https":
+    if not match or url_parsed.scheme != "https":
         return None
 
     width = iframe.get("width", "").rstrip("%").strip('\\"')
@@ -124,6 +128,8 @@ async def extract_metadata(url, opts=None):
     headers = {"User-Agent": user_agent} if user_agent else {}
     timeout = aiohttp.ClientTimeout(total=operation_timeout, connect=response_timeout)
 
+    if bool(re.match(private_regex, urlparse(url).hostname)): 
+        return {}
     async with aiohttp.ClientSession(headers=headers, timeout=timeout) as session:
         tree = await fetch_tree(session, url, timeout, content_length_limit, content_length_required)
 

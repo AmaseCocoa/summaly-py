@@ -139,10 +139,9 @@ async def summarize(url, opts=None):
     if bool(re.match(private_regex, urlparse(url).hostname)): 
         return {}
     async with aiohttp.ClientSession(headers=headers, timeout=timeout) as session:
-        cf = await check_fetch(session, url, timeout, content_length_limit, content_length_required)
+        cf = await check_fetch(session, url, timeout, content_length_limit, content_length_required, no_oembed=True)
         if isinstance(cf, dict):
-            if not cf.get("provider_name"):
-                return cf
+            return cf
         tree = await fetch_tree(session, url, timeout, content_length_limit, content_length_required, cf=cf)
 
         title = (

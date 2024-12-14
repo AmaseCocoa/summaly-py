@@ -13,6 +13,7 @@ async def check(
     timeout,
     content_length_limit,
     content_length_required,
+    no_oembed: bool=False
 ) -> Coroutine[Any, Any, dict] | None:
     url_parsed: yarl.URL = yarl.URL(url)
     args = {
@@ -28,6 +29,6 @@ async def check(
         return html.fromstring(await branchio.fetch(**args))
     elif await wikipedia.test(url_parsed):
         return await wikipedia.summarize(url_parsed, session)
-    elif await youtube.test(url_parsed):
+    elif await youtube.test(url_parsed) and not no_oembed:
         return await youtube.get_oembed_player(**args)
     return None

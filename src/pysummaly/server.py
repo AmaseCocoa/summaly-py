@@ -12,8 +12,6 @@ from fastapi_cache.decorator import cache
 from pydantic import BaseModel
 from .summaly import extract_metadata
 
-import aiohttp
-
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     FastAPICache.init(InMemoryBackend(), prefix="fastapi-cache")

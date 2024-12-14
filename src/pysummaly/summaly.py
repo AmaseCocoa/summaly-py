@@ -12,7 +12,7 @@ from .plugins import check as check_fetch
 private_regex = r'^(10\.\d{1,3}\.\d{1,3}\.\d{1,3}$|172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}$|192\.168\.\d{1,3}\.\d{1,3})'
 
 async def fetch(session: aiohttp.ClientSession, url, timeout, content_length_limit, content_length_required, cf):
-    if cf:
+    if isinstance(cf, str):
         return cf
     try:
         resolver = aiohttp.DefaultResolver()
@@ -47,6 +47,8 @@ def escape_html_in_json(json_string):
 
 async def get_oembed_player(session, page_url, timeout, content_length_limit, content_length_required):
     cf = await check_fetch(session, page_url, timeout, content_length_limit, content_length_required)
+    if isinstance(cf, dict):
+        return cf
     tree = await fetch_tree(session, page_url, timeout, content_length_limit, content_length_required, cf)
     oembed_link = tree.xpath('//link[@type="application/json+oembed"]/@href')
     if not oembed_link:
@@ -139,7 +141,8 @@ async def summarize(url, opts=None):
     async with aiohttp.ClientSession(headers=headers, timeout=timeout) as session:
         cf = await check_fetch(session, url, timeout, content_length_limit, content_length_required)
         if isinstance(cf, dict):
-            return cf
+            if not cf.get("provider_name"):
+                return cf
         tree = await fetch_tree(session, url, timeout, content_length_limit, content_length_required, cf=cf)
 
         title = (

@@ -4,7 +4,7 @@ import aiohttp
 import yarl
 from lxml import html
 
-from . import skeb, branchio, wikipedia
+from . import skeb, branchio, wikipedia, youtube
 
 
 async def check(
@@ -28,4 +28,6 @@ async def check(
         return html.fromstring(await branchio.fetch(**args))
     elif await wikipedia.test(url_parsed):
         return await wikipedia.summarize(url_parsed, session)
+    elif await youtube.test(url_parsed):
+        return await youtube.get_oembed_player(**args)
     return None

@@ -195,6 +195,7 @@ async def extract_metadata(url, opts=None):
             "description": description,
             "thumbnail": image,
             "fediverseCreator": fediverse_creator,
+            "activitypub": activity_pub,
             "player": oembed,
             "sitename": site_name,
             "sensitive": sensitive,

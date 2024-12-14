@@ -7,9 +7,13 @@ import aiohttp
 import orjson
 from lxml import html as lxml_html
 
+from .plugins import check as check_fetch
+
 private_regex = r'^(10\.\d{1,3}\.\d{1,3}\.\d{1,3}$|172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}$|192\.168\.\d{1,3}\.\d{1,3})'
 
-async def fetch(session, url, timeout, content_length_limit, content_length_required):
+async def fetch(session: aiohttp.ClientSession, url, timeout, content_length_limit, content_length_required, cf):
+    if cf:
+        return cf
     try:
         resolver = aiohttp.DefaultResolver()
         infos = await resolver.resolve(url.split('://')[-1].split('/')[0], 0)
@@ -42,13 +46,14 @@ def escape_html_in_json(json_string):
         return None
 
 async def get_oembed_player(session, page_url, timeout, content_length_limit, content_length_required):
-    tree = await fetch_tree(session, page_url, timeout, content_length_limit, content_length_required)
+    cf = await check_fetch(session, page_url, timeout, content_length_limit, content_length_required)
+    tree = await fetch_tree(session, page_url, timeout, content_length_limit, content_length_required, cf)
     oembed_link = tree.xpath('//link[@type="application/json+oembed"]/@href')
     if not oembed_link:
         return None
 
     oembed_url = urljoin(page_url, oembed_link[0])
-    oembed_response = await fetch(session, oembed_url, timeout, content_length_limit, content_length_required)
+    oembed_response = await fetch(session, oembed_url, timeout, content_length_limit, content_length_required, cf)
     oembed_response = escape_html_in_json(oembed_response)
 
     if oembed_response is None:
@@ -114,8 +119,8 @@ async def get_oembed_player(session, page_url, timeout, content_length_limit, co
         "allow": allowed_permissions,
     }
 
-async def fetch_tree(session, url, timeout, content_length_limit, content_length_required):
-    html_content = await fetch(session, url, timeout, content_length_limit, content_length_required)
+async def fetch_tree(session, url, timeout, content_length_limit, content_length_required, cf):
+    html_content = await fetch(session, url, timeout, content_length_limit, content_length_required, cf=cf)
     return lxml_html.fromstring(html_content)
 
 async def extract_metadata(url, opts=None):
@@ -126,13 +131,16 @@ async def extract_metadata(url, opts=None):
     content_length_limit = opts.get("contentLengthLimit", 100**6)
     content_length_required = opts.get("contentLengthRequired", False)
 
-    headers = {"User-Agent": user_agent} if user_agent else {}
+    headers = {"User-Agent": user_agent} if user_agent else {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36 PySummalyBot/x.y.z"}
     timeout = aiohttp.ClientTimeout(total=operation_timeout, connect=response_timeout)
 
     if bool(re.match(private_regex, urlparse(url).hostname)): 
         return {}
     async with aiohttp.ClientSession(headers=headers, timeout=timeout) as session:
-        tree = await fetch_tree(session, url, timeout, content_length_limit, content_length_required)
+        cf = await check_fetch(session, url, timeout, content_length_limit, content_length_required)
+        if isinstance(cf, dict):
+            return cf
+        tree = await fetch_tree(session, url, timeout, content_length_limit, content_length_required, cf=cf)
 
         title = (
             tree.xpath('//meta[@property="og:title"]/@content')

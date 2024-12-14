@@ -23,7 +23,7 @@ license = {text = "MIT"}
 server = [
     "fastapi-cache2>=0.2.2",
     "fastapi>=0.112.0",
-    "granian>=1.5.2",
+    "granian[reload]>=1.5.2",
 ]
 [tool.pdm]
 distribution = true

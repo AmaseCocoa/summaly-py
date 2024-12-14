@@ -123,7 +123,7 @@ async def fetch_tree(session, url, timeout, content_length_limit, content_length
     html_content = await fetch(session, url, timeout, content_length_limit, content_length_required, cf=cf)
     return lxml_html.fromstring(html_content)
 
-async def extract_metadata(url, opts=None):
+async def summarize(url, opts=None):
     opts = opts or {}
     user_agent = opts.get("userAgent")
     response_timeout = opts.get("responseTimeout", 10)

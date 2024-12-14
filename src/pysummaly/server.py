@@ -1,16 +1,17 @@
+import traceback
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Optional
-import traceback
 
 from fastapi import FastAPI, HTTPException, Query
-
 from fastapi.responses import ORJSONResponse
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.inmemory import InMemoryBackend
 from fastapi_cache.decorator import cache
 from pydantic import BaseModel
-from .summaly import extract_metadata
+
+from .summaly import summarize
+
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -33,7 +34,7 @@ class GeneralScrapingOptions(BaseModel):
 @app.get("/")
 @app.get("/url")
 @cache(expire=600)
-async def extract_metadata_endpoint(
+async def summarize_endpoint(
     url: str,
     lang: Optional[str] = Query(None),
     userAgent: Optional[str] = Query(None),
@@ -58,7 +59,7 @@ async def extract_metadata_endpoint(
     )
 
     try:
-        metadata = await extract_metadata(url, opts.model_dump() if opts else {})
+        metadata = await summarize(url, opts.model_dump() if opts else {})
         if metadata is None:
             raise HTTPException(status_code=404, detail="Metadata not found")
         return ORJSONResponse(

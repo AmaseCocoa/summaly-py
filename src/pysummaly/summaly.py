@@ -176,8 +176,11 @@ async def extract_metadata(url, opts=None):
         activity_pub = tree.xpath('//link[@rel="alternate"][@type="application/activity+json"]/@href')
         activity_pub = activity_pub[0] if activity_pub else None
 
-        sensitive = tree.xpath('//meta[@property="mixi:content-rating"]/@content')
-        sensitive = sensitive[0] == "1" if sensitive else False
+        mixi_sensitive = tree.xpath('//meta[@property="mixi:content-rating"]/@content')
+        mixi_sensitive = mixi_sensitive[0] == "1" if mixi_sensitive else False
+        sensitive = tree.xpath('//meta[@name="rating"]/@content')
+        sensitive = sensitive[0] == "adult" or sensitive[0] == "RTA-5042-1996-1400-1577-RTA" if sensitive else False
+        sensitive = mixi_sensitive or sensitive
         
         fediverse_creator = tree.xpath('//meta[@name="fediverse:creator"]/@content')
         fediverse_creator = fediverse_creator[0] if fediverse_creator else None

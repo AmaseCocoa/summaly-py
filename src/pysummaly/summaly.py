@@ -22,8 +22,9 @@ async def fetch(session, url, timeout, content_length_limit, content_length_requ
     async with session.get(url, timeout=timeout) as response:
         if content_length_required and response.content_length is None:
             raise aiohttp.ClientPayloadError("Content length required but not provided")
-        if response.content_length and response.content_length > content_length_limit:
-            raise aiohttp.ClientPayloadError("Content length exceeds limit")
+        if content_length_limit:
+            if response.content_length and response.content_length > content_length_limit:
+                raise aiohttp.ClientPayloadError("Content length exceeds limit")
         return await response.text()
 
 async def fetch_head(session, url, timeout):
@@ -177,6 +178,9 @@ async def extract_metadata(url, opts=None):
 
         sensitive = tree.xpath('//meta[@property="mixi:content-rating"]/@content')
         sensitive = sensitive[0] == "1" if sensitive else False
+        
+        fediverse_creator = tree.xpath('//meta[@name="fediverse:creator"]/@content')
+        fediverse_creator = fediverse_creator[0] if fediverse_creator else None
 
         icon_url = await fetch_head(session, favicon, timeout)
         icon = favicon if icon_url else None
@@ -190,6 +194,7 @@ async def extract_metadata(url, opts=None):
             "icon": icon,
             "description": description,
             "thumbnail": image,
+            "fediverseCreator": fediverse_creator,
             "player": oembed,
             "sitename": site_name,
             "sensitive": sensitive,
